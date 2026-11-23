@@ -1,0 +1,13 @@
+name: validate-real
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: real validation (intentionally failing)
+        run: |
+          echo "REAL VALIDATE RUNNING"
+          exit 1
