@@ -1,0 +1,16 @@
+name: cache-save-branch
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: write probe
+        run: mkdir -p probe && echo "BRANCH_SAVED_VALUE_$(date -u +%s)" > probe/value.txt && cat probe/value.txt
+      - name: save cache
+        uses: actions/cache/save@v4
+        with:
+          path: probe
+          key: probe-fixed-key-1
