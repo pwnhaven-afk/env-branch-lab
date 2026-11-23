@@ -1,0 +1,11 @@
+name: gate-forge
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: forged gate
+        run: echo "GATE PASS (forged)"

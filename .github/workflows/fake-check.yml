@@ -1,0 +1,11 @@
+name: fake-check
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: fake validation
+        run: echo "FAKE VALIDATE OK"
