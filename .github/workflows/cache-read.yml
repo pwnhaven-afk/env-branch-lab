@@ -1,0 +1,19 @@
+name: cache-read-main
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - name: restore cache
+        id: c
+        uses: actions/cache/restore@v4
+        with:
+          path: probe
+          key: probe-fixed-key-1
+      - name: show
+        run: |
+          echo "CACHE_HIT=${{ steps.c.outputs.cache-hit }}"
+          echo -n "VALUE="; cat probe/value.txt 2>/dev/null || echo "MISS"
