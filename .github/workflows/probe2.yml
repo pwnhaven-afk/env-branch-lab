@@ -1,0 +1,33 @@
+name: env-open-probe
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    environment: prod-open
+    steps:
+      - name: ref + OIDC claims (unverified decode, python)
+        run: |
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+          URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org"
+          HTTP=$(curl -sS -o idtoken.json -w '%{http_code}' -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "$URL")
+          echo "oidc_http=$HTTP"
+          python3 - <<'PY'
+          import json,base64
+          d=json.load(open('idtoken.json'))
+          jwt=d.get('value','')
+          print('jwt_len=%d'%len(jwt))
+          p=jwt.split('.')[1]
+          p+='='*(-len(p)%4)
+          claims=json.loads(base64.urlsafe_b64decode(p))
+          keys=['aud','sub','ref','event_name','environment','repository','repository_owner','workflow','workflow_ref','job_workflow_ref','ref_type','sha']
+          print(json.dumps({k:claims.get(k) for k in keys}, indent=1))
+          PY
