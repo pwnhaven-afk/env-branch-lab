@@ -1,0 +1,28 @@
+name: env-open-probe
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    environment: prod-open
+    steps:
+      - name: ref + OIDC claims (unverified decode)
+        run: |
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+          URL="${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org"
+          HTTP=$(curl -sS -o idtoken.json -w '%{http_code}' -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "$URL")
+          echo "oidc_http=$HTTP"
+          JWT=$(jq -r '.value // empty' idtoken.json)
+          echo "jwt_len=${#JWT}"
+          PAYLOAD=$(echo "$JWT" | cut -d. -f2 | tr '_-' '/+')
+          PAD=$(( (4 - ${#PAYLOAD} % 4) % 4 ))
+          PAYLOAD="$PAYLOAD$(printf '=%.0s' $(seq 1 $PAD 2>/dev/null))"
+          echo "$PAYLOAD" | base64 -D 2>/dev/null | jq -c '{aud,sub,ref,event_name,environment,repository,repository_owner,workflow,workflow_ref,job_workflow_ref,ref_type}' 2>/dev/null || echo "decode-failed"
