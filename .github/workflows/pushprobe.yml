@@ -1,0 +1,21 @@
+name: direct-push-probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: attempt direct push to main
+        run: |
+          git config user.name "probe-bot"
+          git config user.email "probe-bot@example.com"
+          echo "probe $(date -u +%s)" > probe.txt
+          git add probe.txt
+          git commit -m "probe: direct push to protected main"
+          git push origin HEAD:main 2>&1 | tee /tmp/push.log
+          echo "PUSH_EXIT=${PIPESTATUS[0]}"
